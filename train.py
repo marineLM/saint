@@ -1,3 +1,27 @@
+"""
+* Prepare the data with data_prep_openml.
+* Move the data to DataSetCatCon and create the corresponding data loaders.
+* Instantiate the loss, the optimiser, the SAINT model.
+* Implement the training loop in which:
+	* data is embedded with embed_data_mask.
+	* apply a transformer on the embedded data,
+	* and then a MLP on the representation of the CLS token.
+	* backprop.
+
+The way SAINT handles missing data amounts to learning a latent factor for each
+column (be it continuous or categorical), and replacing the missing value by
+this latent factor. In both cases, the latent factor is a vector of size dim.
+Note that the learned latent factor is a constant vector, so there is no
+conditional imputation. Moreover, the mask is not concatenated to the features.
+
+The offsets are here for the following reason: an embedding layer maps each
+token (identified by an integer) to its embedding. The pb is that for each
+categorical feature, tokens are numbered from 0 to nb of unique categories in
+the feature. So we need to offset the tokens from 0 to # tokens in feature 1
+for feature 1, then #tokens in feature 1 to (#tokens in f1 + #tokens in f2) for
+the second feature, … So that its token across feature has its own identifier.
+"""
+
 import torch
 from torch import nn
 from models import SAINT

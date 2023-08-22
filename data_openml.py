@@ -41,7 +41,31 @@ def data_split(X,y,nan_mask,indices):
 
 
 def data_prep_openml(ds_id, seed, task, datasplit=[.65, .15, .2]):
-    
+    """
+        * creates train/validation/test splits.
+        * encodes categorical data: one int per category.
+        * deals with missing values: in categorical data, missing values are a
+        category of their own. In continuous data, they are imputed by the mean
+        of the training set.
+        * The data X_{split} is output as a dictionary with keys `data` and
+        `mask` (ones for observed data). The data y_{split} is output as a dict
+        with a single key `data`.
+
+        Returns
+        --------
+        cat_dims: a list that gives the nb of categories in each categorical
+        column.
+
+        cat_idxs: a list with the indices of the categorical columns.
+
+        con_idxs: a list with the indices of the continuous columns.
+
+        X_{split}, y_split: the data given as dictionaries as explained above.
+
+        train_mean, train_std: the mean and std of the continuous features of
+            the train data (imputed values are treated as normal values in
+            computing the mean and std).
+    """
     np.random.seed(seed) 
     dataset = openml.datasets.get_dataset(ds_id)
     
@@ -104,6 +128,22 @@ def data_prep_openml(ds_id, seed, task, datasplit=[.65, .15, .2]):
 
 
 class DataSetCatCon(Dataset):
+    """
+    * Inherits from Dataset to be able to use it with a DataLoader
+    * Standardizes the continuous columns (to zero mean and unit variance)
+
+    When used with a DataLoader, returns:
+    * the categorical data concatenated with a vector of zeros called cls.
+
+    * the continuous data,
+
+    * the response,
+
+    * the mask for the categorical data concatenated with a vector of ones
+    (i.e. the mask for cls)
+
+    * the mask for the continuous data.
+    """
     def __init__(self, X, Y, cat_cols,task='clf',continuous_mean_std=None):
         
         cat_cols = list(cat_cols)

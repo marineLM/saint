@@ -3,6 +3,17 @@ import numpy as np
 
 
 def embed_data_mask(x_categ, x_cont, cat_mask, con_mask,model,vision_dset=False):
+    """
+    * Embeds the categorical data, i.e, each token (category) is mapped to a
+        continuous vector.
+    * Embeds the continuous data, i.e, each feature is mapped to a continuous
+        vector (one simple MLP per feature).
+    * Creates embeddings for the masks. Each value (0: missing, 1: observed) of
+        each feature is mapped to its own embedding (of same dimension dim as
+        the categorical and continuous features). Then the missing values in in
+        the continuous and categorical data are changed to their corresponding
+        missing value embedding.
+    """
     device = x_cont.device
     x_categ = x_categ + model.categories_offset.type_as(x_categ)
     x_categ_enc = model.embeds(x_categ)
