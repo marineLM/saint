@@ -69,7 +69,7 @@ class SAINT(nn.Module):
 
     scalingfactor: unused
 
-    attention_type: str
+    attentiontype: str
         Variant of SAINT. 'col' refers to SAINT-s variant, 'row' is SAINT-i,
         and 'colrow' refers to SAINT.
 
