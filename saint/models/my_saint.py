@@ -5,6 +5,8 @@ from .pretrainmodel import SAINT
 
 
 class MySAINT(nn.Module):
+    """Note: In Grinsztajn et al (and TabSurvey) as well as the SAINT paper,
+    AdamW is used while we use Adam here."""
     """
     Arguments
     ---------
@@ -92,4 +94,8 @@ class MySAINT(nn.Module):
         y_reps = reps[:, 0, :]
         y_outs = self.model.mlpfory(y_reps)
 
-        return y_outs
+        # The output in case of regression should be (batch_size, ) rather than
+        # (batch_size, 1) so we squeeze. Be careful whether this is ok for the
+        # classification case.
+        return y_outs.squeeze()
+
