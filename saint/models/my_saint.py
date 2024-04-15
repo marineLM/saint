@@ -79,11 +79,22 @@ class MySAINT(nn.Module):
         x_cat = x_cat.to(torch.int)
         x_cont = x[:, 1:]
 
+        # Impute by zeros and store the mask.
+        # It should not matter what we use for imputation here as we will
+        # replace these imputations by learned embeddings.
+        con_mask = (~torch.isnan(x_cont)).to(torch.int)
+        x_cont = torch.nan_to_num(x_cont)
+
         # Convert continuous data to embeddings.
         n_samples, n_cont_features = x_cont.shape
         x_cont_enc = torch.empty(n_samples, n_cont_features, self.model.dim)
         for i in range(self.model.num_continuous):
             x_cont_enc[:, i, :] = self.model.simple_MLP[i](x_cont[:, i])
+
+        # Replace missing values in continuous data by their embeddings
+        con_mask_temp = con_mask + self.model.con_mask_offset.type_as(con_mask)
+        con_mask_temp = self.model.mask_embeds_cont(con_mask_temp)
+        x_cont_enc[con_mask == 0] = con_mask_temp[con_mask == 0]
 
         # Convert categorical data to embeddings.
         x_categ_enc = self.model.embeds(x_cat)
@@ -98,4 +109,3 @@ class MySAINT(nn.Module):
         # (batch_size, 1) so we squeeze. Be careful whether this is ok for the
         # classification case.
         return y_outs.squeeze()
-
